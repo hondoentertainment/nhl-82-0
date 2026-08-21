@@ -1,0 +1,38 @@
+:root {
+  --ice-deep: #041018;
+  --ice-mid: #0a2436;
+  --ice-bright: #163a55;
+  --rink-red: #c8102e;
+  --rink-blue: #2f6fed;
+  --chalk: #e8f4ff;
+  --ivory: #f4fbff;
+  --night: #041018;
+  --night-soft: #0b1c2a;
+  --cream: #c9dcea;
+  --gold: #d4a84b;
+  --gold-soft: #e8c97a;
+  --ink: #06141f;
+  --muted: #7a93a6;
+  --danger: #d4544a;
+  --success: #3d9f6e;
+  --line: rgba(232, 244, 255, 0.16);
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+
+  --font-display: 'Oswald', 'Impact', 'Arial Narrow', sans-serif;
+  --font-body: 'Barlow', 'Segoe UI', sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  --max-width: 720px;
+}
