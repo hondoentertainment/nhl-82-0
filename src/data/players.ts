@@ -1,6 +1,7 @@
 import type { Decade } from '../config/constants';
 import type { Player } from '../types/game';
 import { goalie, skater } from './playerFactory';
+import { DEPTH_PLAYERS } from './playersDepth';
 import { EXPANSION_PLAYERS } from './playersExpansion';
 import { MODERN_PLAYERS } from './playersModern';
 
@@ -520,7 +521,12 @@ const CORE_PLAYERS: Player[] = [
   goalie('Jake Oettinger', 'dal', '2020s', 4, false, 2.4, 0.915),
 ]
 
-export const PLAYERS: Player[] = [...CORE_PLAYERS, ...EXPANSION_PLAYERS, ...MODERN_PLAYERS];
+export const PLAYERS: Player[] = [
+  ...CORE_PLAYERS,
+  ...EXPANSION_PLAYERS,
+  ...MODERN_PLAYERS,
+  ...DEPTH_PLAYERS,
+];
 
 export function playersForSpin(franchiseId: string, decade: Decade): Player[] {
   return PLAYERS.filter((p) => p.franchiseId === franchiseId && p.decade === decade);

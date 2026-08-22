@@ -27,4 +27,33 @@ describe('player coverage', () => {
       }
     }
   });
+
+  it('gives every franchise-era enough depth and all six positions', () => {
+    const byKey = new Map<string, typeof PLAYERS>();
+    for (const p of PLAYERS) {
+      const key = `${p.franchiseId}|${p.decade}`;
+      const list = byKey.get(key) ?? [];
+      list.push(p);
+      byKey.set(key, list);
+    }
+
+    for (const [key, pool] of byKey) {
+      expect(pool.length, `${key} depth`).toBeGreaterThanOrEqual(8);
+      const covered = new Set(pool.flatMap((p) => p.positions));
+      for (const pos of POSITIONS) {
+        expect(covered.has(pos), `${key} missing ${pos}`).toBe(true);
+      }
+    }
+  });
+
+  it('does not put goalies in the skater helper', () => {
+    for (const p of PLAYERS) {
+      if (p.positions.includes('G')) {
+        expect(p.goalie, p.id).toBeTruthy();
+        expect(p.skater, p.id).toBeUndefined();
+      } else {
+        expect(p.skater, p.id).toBeTruthy();
+      }
+    }
+  });
 });
