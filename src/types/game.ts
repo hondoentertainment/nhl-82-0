@@ -44,6 +44,20 @@ export interface RosterSlot {
   player: Player | null;
 }
 
+export interface CupSeries {
+  round: string;
+  opponent: string;
+  wins: number;
+  losses: number;
+}
+
+export interface CupResult {
+  qualified: boolean;
+  champion: boolean;
+  roundsWon: number;
+  series: CupSeries[];
+}
+
 export interface SeasonResult {
   wins: number;
   losses: number;
@@ -55,6 +69,7 @@ export interface SeasonResult {
   bestPickId: string | null;
   weakestSlot: Position | null;
   toughnessScore: number;
+  cup?: CupResult;
 }
 
 export interface LeaderboardEntry {

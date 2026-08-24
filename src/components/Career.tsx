@@ -6,12 +6,14 @@ import {
 } from '../game/achievements';
 import { displayDailyStreak, loadCareer } from '../game/career';
 import { useGame } from '../state/gameStore';
+import { DailyHistoryStrip } from './DailyHistory';
 
 const MODE_ORDER: GameMode[] = [
   'classic',
   'iceiq',
   'salary',
   'franchise',
+  'eralock',
   'tough',
   'daily',
   'challenge',
@@ -71,6 +73,8 @@ export function Career() {
           Peak grade: <strong>{career.bestGradeLabel}</strong>
         </p>
       )}
+
+      <DailyHistoryStrip />
 
       <h3 className="subhead">By mode</h3>
       <ul className="mode-stats">

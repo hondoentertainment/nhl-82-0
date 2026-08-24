@@ -30,10 +30,13 @@ export function HowToPlay() {
         team-era and assign them to an open slot. Six rounds, six legends.
       </p>
 
-      <h3>Skips</h3>
+      <h3>Skips, undo, and redraws</h3>
       <p>
         Classic, Ice IQ, Salary Cap, and Toughest Team start with one team skip and one decade skip.
-        Daily Challenge has no skips — everyone faces the same draws.
+        One Franchise locks a club and gets two decade skips. Era Lock locks a decade and gets two
+        team skips. Those modes can undo the last pick, and an empty pool auto-redraws (that is not a
+        skip). Daily and Challenge have no skips, no undo, and no redraw — everyone faces the same
+        draws.
       </p>
 
       <h3>Modes</h3>
@@ -50,6 +53,9 @@ export function HowToPlay() {
         </li>
         <li>
           <strong>One Franchise</strong> — lock a club, spin decades only, two decade skips.
+        </li>
+        <li>
+          <strong>Era Lock</strong> — lock a decade, spin franchises only, two team skips.
         </li>
         <li>
           <strong>Toughest Team</strong> — the sim weights penalty minutes and sandpaper over
@@ -79,6 +85,10 @@ export function HowToPlay() {
         <li>REBUILDING — under 44</li>
       </ul>
       <p>Balance beats one superstar and empty slots. Incomplete rosters are capped hard.</p>
+      <p>
+        A PLAYOFF TEAM grade (44+ wins) also runs a four-round Stanley Cup. Daily and Challenge still
+        score the 82-game record only.
+      </p>
     </section>
   );
 }

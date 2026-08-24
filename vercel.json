@@ -2,5 +2,8 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/c/:code", "destination": "/api/challenge?c=:code" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

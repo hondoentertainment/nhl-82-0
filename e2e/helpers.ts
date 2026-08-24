@@ -19,10 +19,13 @@ async function draftOnePick(page: Page) {
       return;
     }
 
-    const respin = page.getByTestId('respin');
-    if (await respin.isVisible().catch(() => false)) {
-      await respin.click();
-      await expect(page.getByTestId('spin-result')).toBeVisible();
+    const emptyPool = page.getByTestId('empty-pool');
+    if (await emptyPool.isVisible().catch(() => false)) {
+      const respin = page.getByTestId('respin');
+      if (await respin.isVisible().catch(() => false)) {
+        await respin.click();
+      }
+      await expect(emptyPool).toBeHidden({ timeout: 8_000 });
       continue;
     }
 

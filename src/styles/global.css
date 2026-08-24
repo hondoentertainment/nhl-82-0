@@ -30,6 +30,33 @@ button {
   cursor: pointer;
 }
 
+:focus-visible {
+  outline: 3px solid var(--gold-soft);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.btn:focus-visible,
+.mode-card:focus-visible,
+.player-card:focus-visible,
+.nav-links button:focus-visible,
+.install-tip .btn:focus-visible {
+  outline: 3px solid var(--gold-soft);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 img {
   max-width: 100%;
   display: block;
@@ -272,12 +299,34 @@ a {
   max-width: 42ch;
 }
 
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 10;
+  padding: 0.75rem 1.25rem;
+  background: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+  border-radius: 0 0 var(--radius-sm) 0;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
 .draft-header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
+}
+
+.draft-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .draft-header h2 {
@@ -769,4 +818,133 @@ a {
 .unlock-list span {
   opacity: 0.8;
   font-size: 0.9rem;
+}
+
+.result-hero {
+  position: relative;
+}
+
+.confetti-canvas {
+  position: absolute;
+  inset: -1.5rem -0.5rem 0;
+  width: calc(100% + 1rem);
+  height: 16rem;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.result-hero > *:not(.confetti-canvas) {
+  position: relative;
+  z-index: 1;
+}
+
+.install-tip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: center;
+  margin: 0 0 var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid rgba(212, 168, 75, 0.4);
+  border-radius: var(--radius-md);
+  background: rgba(212, 168, 75, 0.08);
+}
+
+.install-tip-title {
+  margin: 0 0 0.2rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--gold-soft);
+}
+
+.install-tip-copy {
+  margin: 0;
+  color: var(--cream);
+  font-size: 0.92rem;
+}
+
+.install-tip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.daily-history-compact {
+  margin: 0 0 var(--space-4);
+}
+
+.daily-history-strip {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 4px;
+}
+
+.daily-history-cell {
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: rgba(232, 244, 255, 0.1);
+  border: 1px solid transparent;
+}
+
+.daily-history-cell.played {
+  background: var(--gold);
+}
+
+.daily-history-cell.today {
+  border-color: var(--chalk);
+}
+
+.daily-history-list {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.daily-history-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--cream);
+}
+
+.empty-pool-banner {
+  margin-bottom: 0.75rem;
+}
+
+.empty-pool-hint {
+  margin: 0.4rem 0 0.65rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.cup-series {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.cup-series li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--cream);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reel.spinning .reel-value {
+    animation: none;
+  }
 }

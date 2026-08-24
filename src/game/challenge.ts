@@ -36,7 +36,7 @@ export function challengeHashParam(code: string): string {
 }
 
 export function parseChallengeFromLocation(
-  loc: Pick<Location, 'hash' | 'search'> = window.location,
+  loc: Pick<Location, 'hash' | 'search' | 'pathname'> = window.location,
 ): string | null {
   const hash = loc.hash.replace(/^#/, '');
   if (hash.startsWith('c=')) {
@@ -46,9 +46,19 @@ export function parseChallengeFromLocation(
   const params = new URLSearchParams(loc.search);
   const q = params.get('c') ?? params.get('challenge');
   if (q && decodeChallengeSeed(q) != null) return q.toUpperCase();
+
+  const fromPath = /^\/c\/([^/?#]+)/.exec(loc.pathname ?? '');
+  if (fromPath) {
+    const code = decodeURIComponent(fromPath[1]!);
+    if (decodeChallengeSeed(code) != null) return code.toUpperCase();
+  }
   return null;
 }
 
+/**
+ * Uses a real path rather than a hash so link unfurlers can request a
+ * per-code preview image — fragments never reach the server.
+ */
 export function challengeShareUrl(code: string, origin = window.location.origin): string {
-  return `${origin}/${challengeHashParam(code)}`;
+  return `${origin}/c/${encodeURIComponent(code)}`;
 }

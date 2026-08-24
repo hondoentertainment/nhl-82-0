@@ -8,6 +8,9 @@ test.describe('career and challenge', () => {
     await expect(page.getByTestId('mode-label')).toHaveText('Challenge');
     await playFullDraft(page);
     await expect(page.getByTestId('result-challenge-code')).toBeVisible();
+    await expect(page.getByTestId('cup-run')).toBeVisible();
+    await expect(page.getByTestId('rematch-board')).toBeVisible();
+    await expect(page.getByTestId('rematch-list')).toContainText('You');
     await page.getByRole('button', { name: 'Career' }).click();
     await expect(page.getByTestId('career')).toBeVisible();
     await expect(page.getByTestId('career-stats')).toContainText('1');

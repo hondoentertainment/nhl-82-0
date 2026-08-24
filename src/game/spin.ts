@@ -1,13 +1,16 @@
 import { DECADES, type Decade } from '../config/constants';
 import { FRANCHISES, franchisesForDecade } from '../data/franchises';
-import { PLAYERS, playersForSpin } from '../data/players';
+import { playersForSpin, populatedKeys } from '../data/pool';
 import type { Player, SpinResult } from '../types/game';
 import { pickRandom } from './rng';
 
-const POPULATED_KEYS = new Set(PLAYERS.map((p) => `${p.franchiseId}|${p.decade}`));
-
 function populatedFranchises(decade: Decade) {
-  return franchisesForDecade(decade).filter((f) => POPULATED_KEYS.has(`${f.id}|${decade}`));
+  const keys = populatedKeys();
+  return franchisesForDecade(decade).filter((f) => keys.has(`${f.id}|${decade}`));
+}
+
+export function decadesWithPlayers(): Decade[] {
+  return DECADES.filter((d) => populatedFranchises(d).length > 0);
 }
 
 export function spinDraw(rand: () => number, opts?: { decade?: Decade }): SpinResult {
@@ -43,7 +46,8 @@ export function getAvailablePlayers(
 }
 
 export function decadesForFranchise(franchiseId: string): Decade[] {
-  return DECADES.filter((d) => POPULATED_KEYS.has(`${franchiseId}|${d}`));
+  const keys = populatedKeys();
+  return DECADES.filter((d) => keys.has(`${franchiseId}|${d}`));
 }
 
 export function spinDecadeForFranchise(
@@ -67,13 +71,14 @@ export function spinWithEligibility(
   takenIds: Set<string>,
   attempts = 40,
   lockedFranchiseId?: string | null,
+  lockedDecade?: Decade | null,
 ): SpinResult {
   let best: SpinResult | null = null;
   let bestCount = -1;
   for (let i = 0; i < attempts; i++) {
     const spin = lockedFranchiseId
       ? spinDecadeForFranchise(rand, lockedFranchiseId)
-      : spinDraw(rand);
+      : spinDraw(rand, lockedDecade ? { decade: lockedDecade } : undefined);
     const count = getAvailablePlayers(spin, openPositions, takenIds).length;
     if (count > bestCount) {
       best = spin;
@@ -84,5 +89,5 @@ export function spinWithEligibility(
   if (best) return best;
   return lockedFranchiseId
     ? spinDecadeForFranchise(rand, lockedFranchiseId)
-    : spinDraw(rand);
+    : spinDraw(rand, lockedDecade ? { decade: lockedDecade } : undefined);
 }

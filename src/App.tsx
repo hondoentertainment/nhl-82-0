@@ -1,4 +1,6 @@
+import { Analytics } from '@vercel/analytics/react';
 import { Career } from './components/Career';
+import { DecadeSelect } from './components/DecadeSelect';
 import { Draft } from './components/Draft';
 import { FranchiseSelect } from './components/FranchiseSelect';
 import { Home } from './components/Home';
@@ -14,6 +16,8 @@ function ScreenRouter() {
   switch (state.screen) {
     case 'franchise-select':
       return <FranchiseSelect />;
+    case 'decade-select':
+      return <DecadeSelect />;
     case 'draft':
       return <Draft />;
     case 'reveal':
@@ -36,9 +40,13 @@ export default function App() {
     <GameProvider>
       <div className="app-shell">
         <div className="rink-bg" aria-hidden="true" />
-        <main className="app-content">
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        <main className="app-content" id="main">
           <ScreenRouter />
         </main>
+        <Analytics />
       </div>
     </GameProvider>
   );

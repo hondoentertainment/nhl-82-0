@@ -4,16 +4,19 @@ import {
   useContext,
   useMemo,
   useReducer,
+  useRef,
   type ReactNode,
 } from 'react';
 import {
   MODE_LABELS,
   POSITIONS,
   spinDurationMs,
+  type Decade,
   type GameMode,
   type Position,
 } from '../config/constants';
 import { FRANCHISE_BY_ID } from '../data/franchises';
+import { ensurePool } from '../data/pool';
 import { evaluateAchievements, type AchievementId } from '../game/achievements';
 import { recordCareerResult } from '../game/career';
 import {
@@ -23,7 +26,11 @@ import {
 } from '../game/challenge';
 import { dailyRng, saveDailyRecord, utcDateKey } from '../game/daily';
 import { submitDailyBoard } from '../game/dailyBoard';
+import { recordDailyHistory } from '../game/dailyHistory';
+import { canUndoLastPick } from '../game/draftRules';
 import { tryAddLeaderboardEntry } from '../game/leaderboard';
+import { simulateCup } from '../game/playoffs';
+import { recordRematch } from '../game/rematch';
 import { hashString, mulberry32 } from '../game/rng';
 import { playerSalary, rosterSpend, SALARY_CAP_M } from '../game/salary';
 import { simulateSeason } from '../game/simulate';
@@ -43,7 +50,8 @@ export type Screen =
   | 'result'
   | 'how'
   | 'leaderboard'
-  | 'career';
+  | 'career'
+  | 'decade-select';
 
 interface GameState {
   screen: Screen;
@@ -62,19 +70,37 @@ interface GameState {
   dailyRank: number | null;
   salaryCap: number | null;
   lockedFranchiseId: string | null;
+  lockedDecade: Decade | null;
   challengeCode: string | null;
   newAchievements: AchievementId[];
+  lastPick: LastPickSnapshot | null;
+}
+
+interface LastPickSnapshot {
+  roster: RosterSlot[];
+  spin: SpinResult;
+  round: number;
+  teamSkips: number;
+  decadeSkips: number;
+  randSeed: number;
 }
 
 type Action =
   | { type: 'SET_SCREEN'; screen: Screen }
-  | { type: 'START'; mode: GameMode; franchiseId?: string; challengeCode?: string }
+  | {
+      type: 'START';
+      mode: GameMode;
+      franchiseId?: string;
+      challengeCode?: string;
+      decade?: Decade;
+    }
   | { type: 'SPIN_START' }
   | { type: 'SPIN_DONE'; spin: SpinResult }
   | { type: 'SKIP_TEAM' }
   | { type: 'SKIP_DECADE' }
   | { type: 'RESPIN' }
   | { type: 'PICK'; player: Player; position: Position }
+  | { type: 'UNDO_LAST_PICK' }
   | {
       type: 'SET_RESULT';
       result: SeasonResult;
@@ -109,9 +135,23 @@ const initialState: GameState = {
   dailyRank: null,
   salaryCap: null,
   lockedFranchiseId: null,
+  lockedDecade: null,
   challengeCode: null,
   newAchievements: [],
+  lastPick: null,
 };
+
+function snapshotLastPick(state: GameState): LastPickSnapshot | null {
+  if (!canUndoLastPick(state.mode) || !state.spin) return null;
+  return {
+    roster: state.roster,
+    spin: state.spin,
+    round: state.round,
+    teamSkips: state.teamSkips,
+    decadeSkips: state.decadeSkips,
+    randSeed: state.randSeed,
+  };
+}
 
 function openPositions(roster: RosterSlot[]): Position[] {
   return roster.filter((s) => !s.player).map((s) => s.position);
@@ -130,6 +170,7 @@ function reducer(state: GameState, action: Action): GameState {
       const isSalary = action.mode === 'salary';
       const isFranchise = action.mode === 'franchise';
       const isChallenge = action.mode === 'challenge';
+      const isEraLock = action.mode === 'eralock';
       const dateKey = isDaily ? utcDateKey() : null;
       let seed: number;
       let challengeCode: string | null = null;
@@ -153,15 +194,18 @@ function reducer(state: GameState, action: Action): GameState {
           isSalary ||
           isFranchise ||
           isChallenge ||
+          isEraLock ||
           action.mode === 'tough',
-        teamSkips: isDaily || isFranchise || isChallenge ? 0 : 1,
-        decadeSkips: isDaily || isChallenge ? 0 : isFranchise ? 2 : 1,
+        teamSkips: isDaily || isFranchise || isChallenge ? 0 : isEraLock ? 2 : 1,
+        decadeSkips: isDaily || isChallenge || isEraLock ? 0 : isFranchise ? 2 : 1,
         randSeed: seed,
         dateKey,
         roster: emptyRoster(),
         salaryCap: isSalary ? SALARY_CAP_M : null,
         lockedFranchiseId: isFranchise ? (action.franchiseId ?? null) : null,
+        lockedDecade: isEraLock ? (action.decade ?? null) : null,
         challengeCode,
+        lastPick: null,
       };
     }
     case 'SPIN_START':
@@ -188,6 +232,9 @@ function reducer(state: GameState, action: Action): GameState {
             rand,
             openPositions(state.roster),
             takenIds(state.roster),
+            40,
+            state.lockedFranchiseId,
+            state.lockedDecade,
           );
       return {
         ...state,
@@ -204,7 +251,14 @@ function reducer(state: GameState, action: Action): GameState {
       let spin = state.spin;
       for (let i = 0; i < 24; i++) {
         const rand = createRng(nextSeed + state.round * 53 + 7 + i * 17);
-        spin = spinWithEligibility(rand, open, taken, 40, state.lockedFranchiseId);
+        spin = spinWithEligibility(
+          rand,
+          open,
+          taken,
+          40,
+          state.lockedFranchiseId,
+          state.lockedDecade,
+        );
         const pool = getAvailablePlayers(spin, open, taken);
         if (!pool.length) {
           nextSeed += 3;
@@ -223,6 +277,7 @@ function reducer(state: GameState, action: Action): GameState {
         const spent = rosterSpend(state.roster.map((s) => s.player));
         if (spent + playerSalary(action.player) > state.salaryCap) return state;
       }
+      const lastPick = snapshotLastPick(state);
       const roster = state.roster.map((slot) =>
         slot.position === action.position
           ? { ...slot, player: action.player }
@@ -235,6 +290,22 @@ function reducer(state: GameState, action: Action): GameState {
         spin: null,
         round: filled ? state.round : state.round + 1,
         screen: filled ? 'reveal' : 'draft',
+        lastPick,
+      };
+    }
+    case 'UNDO_LAST_PICK': {
+      if (!state.lastPick || !canUndoLastPick(state.mode)) return state;
+      return {
+        ...state,
+        roster: state.lastPick.roster,
+        spin: state.lastPick.spin,
+        round: state.lastPick.round,
+        teamSkips: state.lastPick.teamSkips,
+        decadeSkips: state.lastPick.decadeSkips,
+        randSeed: state.lastPick.randSeed,
+        lastPick: null,
+        screen: 'draft',
+        spinning: false,
       };
     }
     case 'SET_RESULT':
@@ -257,12 +328,15 @@ function reducer(state: GameState, action: Action): GameState {
 interface GameContextValue {
   state: GameState;
   startGame: (mode: GameMode, franchiseId?: string, challengeCode?: string) => void;
+  startEraLock: (decade: Decade) => void;
   beginFranchiseSelect: () => void;
+  beginDecadeSelect: () => void;
   spin: () => void;
   skipTeam: () => void;
   skipDecade: () => void;
   respinEmpty: () => void;
   pickPlayer: (player: Player, position: Position) => void;
+  undoLastPick: () => void;
   finishReveal: () => void;
   goHome: () => void;
   setScreen: (screen: Screen) => void;
@@ -271,22 +345,48 @@ interface GameContextValue {
   salarySpent: number;
   salaryRemaining: number | null;
   modeLabel: string;
+  canUndo: boolean;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const startGeneration = useRef(0);
 
   const startGame = useCallback(
     (mode: GameMode, franchiseId?: string, challengeCode?: string) => {
-      dispatch({ type: 'START', mode, franchiseId, challengeCode });
+      const generation = ++startGeneration.current;
+      void ensurePool().then(() => {
+        if (generation !== startGeneration.current) return;
+        dispatch({ type: 'START', mode, franchiseId, challengeCode });
+      });
     },
     [],
   );
 
+  const startEraLock = useCallback((decade: Decade) => {
+    const generation = ++startGeneration.current;
+    void ensurePool().then(() => {
+      if (generation !== startGeneration.current) return;
+      dispatch({ type: 'START', mode: 'eralock', decade });
+    });
+  }, []);
+
   const beginFranchiseSelect = useCallback(() => {
-    dispatch({ type: 'SET_SCREEN', screen: 'franchise-select' });
+    const generation = ++startGeneration.current;
+    void ensurePool().then(() => {
+      if (generation !== startGeneration.current) return;
+      dispatch({ type: 'SET_SCREEN', screen: 'franchise-select' });
+    });
+  }, []);
+
+  const beginDecadeSelect = useCallback(() => {
+    const generation = ++startGeneration.current;
+    void ensurePool().then(() => {
+      if (generation !== startGeneration.current) return;
+      dispatch({ type: 'SET_SCREEN', screen: 'decade-select' });
+    });
   }, []);
 
   const spin = useCallback(() => {
@@ -309,13 +409,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
       taken,
       40,
       state.lockedFranchiseId,
+      state.lockedDecade,
     );
     if (
       (state.mode === 'daily' || state.mode === 'challenge') &&
       getAvailablePlayers(result, open, taken).length === 0
     ) {
       for (let i = 0; i < 60; i++) {
-        result = spinWithEligibility(rand, open, taken, 20, state.lockedFranchiseId);
+        result = spinWithEligibility(
+          rand,
+          open,
+          taken,
+          20,
+          state.lockedFranchiseId,
+          state.lockedDecade,
+        );
         if (getAvailablePlayers(result, open, taken).length > 0) break;
       }
     }
@@ -325,6 +433,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     );
   }, [
     state.dateKey,
+    state.lockedDecade,
     state.lockedFranchiseId,
     state.mode,
     state.randSeed,
@@ -340,9 +449,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'PICK', player, position });
   }, []);
 
+  const undoLastPick = useCallback(() => dispatch({ type: 'UNDO_LAST_PICK' }), []);
+
   const finishReveal = useCallback(() => {
     void (async () => {
       const result = simulateSeason(state.roster, { tough: state.mode === 'tough' });
+      result.cup = simulateCup(state.roster, {
+        regularWins: result.wins,
+        seed: state.randSeed,
+        tough: state.mode === 'tough',
+      });
       const rosterNames = state.roster.map((s) => s.player?.name ?? '—');
       let madeLeaderboard = false;
       let dailyRank: number | null = null;
@@ -376,6 +492,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
           rosterNames,
         });
         dailyRank = submitted.rank ?? null;
+        recordDailyHistory({
+          dateKey: state.dateKey,
+          wins: result.wins,
+          losses: result.losses,
+          gradeLabel: result.gradeLabel,
+          rosterNames,
+        });
+      }
+
+      if (state.mode === 'challenge' && state.challengeCode) {
+        recordRematch(state.challengeCode, {
+          wins: result.wins,
+          losses: result.losses,
+          gradeLabel: result.gradeLabel,
+          rosterNames,
+          label: 'You',
+        });
       }
 
       const career = state.mode
@@ -413,7 +546,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         newAchievements,
       });
     })();
-  }, [state.dateKey, state.mode, state.roster]);
+  }, [state.challengeCode, state.dateKey, state.mode, state.randSeed, state.roster]);
 
   const goHome = useCallback(() => dispatch({ type: 'RESET' }), []);
   const setScreen = useCallback(
@@ -444,17 +577,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
       : '';
 
   const modeLabel = state.mode ? MODE_LABELS[state.mode] : '';
+  const canUndo = !!state.lastPick && canUndoLastPick(state.mode);
 
   const value = useMemo(
     () => ({
       state,
       startGame,
+      startEraLock,
       beginFranchiseSelect,
+      beginDecadeSelect,
       spin,
       skipTeam,
       skipDecade,
       respinEmpty,
       pickPlayer,
+      undoLastPick,
       finishReveal,
       goHome,
       setScreen,
@@ -463,16 +600,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
       salarySpent,
       salaryRemaining,
       modeLabel,
+      canUndo,
     }),
     [
       state,
       startGame,
+      startEraLock,
       beginFranchiseSelect,
+      beginDecadeSelect,
       spin,
       skipTeam,
       skipDecade,
       respinEmpty,
       pickPlayer,
+      undoLastPick,
       finishReveal,
       goHome,
       setScreen,
@@ -481,6 +622,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       salarySpent,
       salaryRemaining,
       modeLabel,
+      canUndo,
     ],
   );
 

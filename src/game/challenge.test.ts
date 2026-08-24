@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  challengeShareUrl,
   decodeChallengeSeed,
   encodeChallengeSeed,
   parseChallengeFromLocation,
@@ -22,10 +23,21 @@ describe('challenge codes', () => {
   });
 
   it('parses hash and query', () => {
-    expect(parseChallengeFromLocation({ hash: '#c=ABCDEF', search: '' })).toBe('ABCDEF');
-    expect(parseChallengeFromLocation({ hash: '', search: '?challenge=XYZ234' })).toBe(
-      'XYZ234',
+    expect(parseChallengeFromLocation({ hash: '#c=ABCDEF', search: '', pathname: '/' })).toBe(
+      'ABCDEF',
     );
-    expect(parseChallengeFromLocation({ hash: '#c=!!', search: '' })).toBeNull();
+    expect(
+      parseChallengeFromLocation({ hash: '', search: '?challenge=XYZ234', pathname: '/' }),
+    ).toBe('XYZ234');
+    expect(parseChallengeFromLocation({ hash: '#c=!!', search: '', pathname: '/' })).toBeNull();
+    expect(
+      parseChallengeFromLocation({ hash: '', search: '', pathname: '/c/ABCDEF' }),
+    ).toBe('ABCDEF');
+  });
+
+  it('builds a path-based share URL', () => {
+    expect(challengeShareUrl('ABCDEF', 'https://example.test')).toBe(
+      'https://example.test/c/ABCDEF',
+    );
   });
 });

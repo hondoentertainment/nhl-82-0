@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { LEADERBOARD_MIN_WINS } from '../config/constants';
+import { previousUtcDateKey } from '../game/career';
 import { utcDateKey } from '../game/daily';
 import { fetchDailyBoard, type GlobalDailyEntry } from '../game/dailyBoard';
 import { loadLeaderboard } from '../game/leaderboard';
 import { useGame } from '../state/gameStore';
+import { RematchBoard } from './RematchBoard';
 
-type Tab = 'classic' | 'daily';
+type Tab = 'classic' | 'daily' | 'yesterday' | 'rematch';
 
 export function Leaderboard() {
   const { setScreen } = useGame();
@@ -14,13 +16,16 @@ export function Leaderboard() {
   const [dailyEntries, setDailyEntries] = useState<GlobalDailyEntry[]>([]);
   const [dailyError, setDailyError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [rematchCode, setRematchCode] = useState('');
   const today = utcDateKey();
+  const yesterday = previousUtcDateKey(today);
+  const dailyKey = tab === 'yesterday' ? yesterday : today;
 
   useEffect(() => {
-    if (tab !== 'daily') return;
+    if (tab !== 'daily' && tab !== 'yesterday') return;
     let cancelled = false;
     setLoading(true);
-    void fetchDailyBoard(today).then((res) => {
+    void fetchDailyBoard(dailyKey).then((res) => {
       if (cancelled) return;
       setDailyEntries(res.entries);
       setDailyError(res.error ?? null);
@@ -29,7 +34,7 @@ export function Leaderboard() {
     return () => {
       cancelled = true;
     };
-  }, [tab, today]);
+  }, [dailyKey, tab]);
 
   return (
     <section>
@@ -50,26 +55,69 @@ export function Leaderboard() {
         </button>
         <button
           type="button"
+          className={`btn ${tab === 'yesterday' ? 'btn-primary' : 'btn-secondary'}`}
+          data-testid="yesterday-board"
+          onClick={() => setTab('yesterday')}
+        >
+          Yesterday
+        </button>
+        <button
+          type="button"
           className={`btn ${tab === 'classic' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setTab('classic')}
         >
           Local Classic
         </button>
+        <button
+          type="button"
+          className={`btn ${tab === 'rematch' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setTab('rematch')}
+        >
+          Challenge rematch
+        </button>
       </div>
 
-      {tab === 'daily' ? (
+      {tab === 'rematch' ? (
         <>
-          <p className="lede">UTC {today} · same spins for everyone</p>
+          <p className="lede">Look up a challenge code stored on this device.</p>
+          <div className="challenge-row" style={{ marginBottom: '1rem' }}>
+            <input
+              type="text"
+              className="challenge-input"
+              placeholder="Enter code"
+              aria-label="Rematch challenge code"
+              data-testid="rematch-lookup"
+              value={rematchCode}
+              onChange={(e) => setRematchCode(e.target.value.toUpperCase())}
+              maxLength={10}
+            />
+          </div>
+          {rematchCode.trim().length >= 4 ? (
+            <RematchBoard code={rematchCode.trim()} />
+          ) : (
+            <div className="panel empty-pool">Enter a 4–10 character challenge code.</div>
+          )}
+        </>
+      ) : tab === 'daily' || tab === 'yesterday' ? (
+        <>
+          <p className="lede">
+            UTC {dailyKey} · same spins for everyone
+            {tab === 'yesterday' ? ' · yesterday’s top 10' : ''}
+          </p>
           {loading && <div className="panel empty-pool">Loading global board…</div>}
           {!loading && dailyError && (
             <div className="panel empty-pool">{dailyError}. Local daily still saves on your device.</div>
           )}
           {!loading && !dailyError && !dailyEntries.length && (
-            <div className="panel empty-pool">No global entries yet today. Be the first.</div>
+            <div className="panel empty-pool">
+              {tab === 'yesterday'
+                ? 'No global entries from yesterday.'
+                : 'No global entries yet today. Be the first.'}
+            </div>
           )}
           {!loading && !!dailyEntries.length && (
             <ol className="leaderboard-list">
-              {dailyEntries.map((e, i) => (
+              {(tab === 'yesterday' ? dailyEntries.slice(0, 10) : dailyEntries).map((e, i) => (
                 <li key={e.id}>
                   <span>{i + 1}</span>
                   <div>

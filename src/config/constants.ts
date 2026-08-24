@@ -35,7 +35,8 @@ export type GameMode =
   | 'salary'
   | 'franchise'
   | 'challenge'
-  | 'tough';
+  | 'tough'
+  | 'eralock';
 
 export const MODE_LABELS: Record<GameMode, string> = {
   classic: 'Classic',
@@ -45,6 +46,7 @@ export const MODE_LABELS: Record<GameMode, string> = {
   franchise: 'One Franchise',
   challenge: 'Challenge',
   tough: 'Toughest Team',
+  eralock: 'Era Lock',
 };
 
 /** Spin animation duration; shortened when `window.__E2E__` is set */
@@ -84,4 +86,7 @@ export const STORAGE_KEYS = {
   lastResult: 'nhl820_last_result',
   career: 'nhl820_career',
   achievements: 'nhl820_achievements',
+  dailyHistory: 'nhl820_daily_history',
+  installTip: 'nhl820_install_tip',
+  rematch: 'nhl820_rematch',
 } as const;

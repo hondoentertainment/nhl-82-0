@@ -4,6 +4,7 @@ export interface ShareCardInput {
   gradeLabel: string;
   modeLabel: string;
   rosterNames: string[];
+  challengeCode?: string | null;
 }
 
 function roundRect(
@@ -83,6 +84,23 @@ export function drawShareCard(input: ShareCardInput): HTMLCanvasElement {
   ctx.textAlign = 'center';
   ctx.fillText(input.gradeLabel, 222, 425);
   ctx.textAlign = 'left';
+
+  if (input.challengeCode) {
+    const badge = `CODE ${input.challengeCode}`;
+    ctx.font = '700 22px Barlow, sans-serif';
+    const bw = Math.max(180, ctx.measureText(badge).width + 36);
+    ctx.fillStyle = 'rgba(6, 20, 31, 0.85)';
+    roundRect(ctx, 1200 - 72 - bw, 54, bw, 44, 999);
+    ctx.fill();
+    ctx.strokeStyle = '#d4a84b';
+    ctx.lineWidth = 2;
+    roundRect(ctx, 1200 - 72 - bw, 54, bw, 44, 999);
+    ctx.stroke();
+    ctx.fillStyle = '#d4a84b';
+    ctx.textAlign = 'center';
+    ctx.fillText(badge, 1200 - 72 - bw / 2, 83);
+    ctx.textAlign = 'left';
+  }
 
   const line = input.rosterNames.join('  ·  ');
   ctx.fillStyle = 'rgba(232, 244, 255, 0.88)';

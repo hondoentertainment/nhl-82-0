@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { ACHIEVEMENT_BY_ID } from '../game/achievements';
+import { shouldCelebrate } from '../game/celebrate';
 import { challengeShareUrl } from '../game/challenge';
 import { useGame } from '../state/gameStore';
+import { Confetti } from './Confetti';
+import { RematchBoard } from './RematchBoard';
 import { RosterBoard } from './RosterBoard';
 import { ShareCard } from './ShareCard';
 
@@ -27,7 +30,7 @@ function buildShareText(
 }
 
 export function ResultCard() {
-  const { state, goHome, startGame, modeLabel, setScreen } = useGame();
+  const { state, goHome, startGame, startEraLock, modeLabel, setScreen } = useGame();
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const result = state.result;
@@ -66,7 +69,8 @@ export function ResultCard() {
 
   return (
     <section data-testid="result">
-      <div className="panel" style={{ textAlign: 'center' }}>
+      <div className="panel result-hero" style={{ textAlign: 'center' }}>
+        {shouldCelebrate(result.gradeId) && <Confetti />}
         <p className="section-label">Final record</p>
         <div className="win-counter" data-testid="final-record">
           {result.wins}-{result.losses}
@@ -124,6 +128,48 @@ export function ResultCard() {
         </div>
       </div>
 
+      {result.cup && (
+        <div className="panel" data-testid="cup-run" style={{ marginTop: '1.5rem' }}>
+          <p className="section-label">Stanley Cup</p>
+          {!result.cup.qualified && (
+            <p data-testid="cup-missed">Missed the playoffs. Daily and Challenge still score the 82-game record.</p>
+          )}
+          {result.cup.qualified && result.cup.champion && (
+            <p className="toast" data-testid="cup-champion">
+              Stanley Cup champions.
+            </p>
+          )}
+          {result.cup.qualified && !result.cup.champion && (
+            <p data-testid="cup-eliminated">
+              Eliminated in the {result.cup.series[result.cup.series.length - 1]?.round ?? 'playoffs'}.
+            </p>
+          )}
+          {result.cup.qualified && (
+            <ol className="cup-series" data-testid="cup-series">
+              {result.cup.series.map((s) => (
+                <li key={s.round}>
+                  <strong>{s.round}</strong>
+                  <span>
+                    {s.wins}-{s.losses} vs {s.opponent}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+          {(state.mode === 'daily' || state.mode === 'challenge') && (
+            <p className="lede" style={{ marginTop: '0.75rem' }}>
+              The shared score is the regular-season record only.
+            </p>
+          )}
+        </div>
+      )}
+
+      {state.challengeCode && (
+        <div style={{ marginTop: '1.5rem' }}>
+          <RematchBoard code={state.challengeCode} />
+        </div>
+      )}
+
       <p className="section-label">Roster</p>
       <RosterBoard roster={state.roster} />
 
@@ -135,6 +181,7 @@ export function ResultCard() {
           gradeLabel={result.gradeLabel}
           modeLabel={modeLabel}
           rosterNames={names}
+          challengeCode={state.challengeCode}
         />
       </div>
 
@@ -162,7 +209,9 @@ export function ResultCard() {
               onClick={() =>
                 state.mode === 'challenge' && state.challengeCode
                   ? startGame('challenge', undefined, state.challengeCode)
-                  : startGame(state.mode!)
+                  : state.mode === 'eralock' && state.lockedDecade
+                    ? startEraLock(state.lockedDecade)
+                    : startGame(state.mode!)
               }
             >
               Play again

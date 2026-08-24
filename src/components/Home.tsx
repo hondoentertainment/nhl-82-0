@@ -7,9 +7,11 @@ import {
 import { isDailyCompletedToday, loadDailyRecord, utcDateKey } from '../game/daily';
 import { formatSalary, SALARY_CAP_M } from '../game/salary';
 import { useGame } from '../state/gameStore';
+import { DailyHistoryStrip } from './DailyHistory';
+import { InstallTip } from './InstallTip';
 
 export function Home() {
-  const { startGame, beginFranchiseSelect, setScreen } = useGame();
+  const { startGame, beginFranchiseSelect, beginDecadeSelect, setScreen } = useGame();
   const dailyDone = isDailyCompletedToday();
   const daily = loadDailyRecord();
   const today = utcDateKey();
@@ -46,6 +48,8 @@ export function Home() {
       <p className="lede">
         Spin a franchise and decade, fill six positions, and see if your roster can go undefeated.
       </p>
+      <InstallTip />
+      <DailyHistoryStrip compact />
 
       {(streak > 0 || career.gamesPlayed > 0) && (
         <p className="career-chip" data-testid="home-career-chip">
@@ -103,6 +107,15 @@ export function Home() {
         >
           <h3>One Franchise</h3>
           <p>Lock a club, spin decades only, and build an all-time single-franchise six.</p>
+        </button>
+        <button
+          type="button"
+          className="mode-card"
+          data-testid="mode-eralock"
+          onClick={beginDecadeSelect}
+        >
+          <h3>Era Lock</h3>
+          <p>Lock a decade, spin franchises only, and build the best six that era produced.</p>
         </button>
         <button
           type="button"

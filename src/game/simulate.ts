@@ -60,6 +60,36 @@ export function rosterToughness(roster: RosterSlot[]): number {
   }, 0);
 }
 
+function strengthFromRatings(
+  ratings: { position: Position; player: Player | null; rating: number }[],
+): { strength: number; mean: number; min: number; max: number; balance: number } {
+  const filled = ratings.filter((r) => r.player).length;
+  const mean =
+    filled === 0 ? 0 : ratings.reduce((sum, r) => sum + r.rating, 0) / POSITIONS.length;
+  const filledRatings = ratings.filter((r) => r.player).map((r) => r.rating);
+  const min = filledRatings.length ? Math.min(...filledRatings) : 0;
+  const max = filledRatings.length ? Math.max(...filledRatings) : 0;
+  const balance = filledRatings.length ? 1 - (max - min) * 0.35 : 0;
+  const legendCount = ratings.filter(
+    (r) => r.player && (r.player.tier >= 5 || r.player.hof),
+  ).length;
+  const legendBonus = legendCount * 0.016;
+  let strength = clamp(mean * 0.8 + min * 0.08 + balance * 0.04 + legendBonus, 0, 1);
+  if (filled === POSITIONS.length && mean >= 0.78 && min >= 0.68 && legendCount >= 5) {
+    strength = clamp(strength + 0.05, 0, 1);
+  }
+  return { strength, mean, min, max, balance };
+}
+
+export function rosterStrength(roster: RosterSlot[], opts?: { tough?: boolean }): number {
+  const ratings = roster.map((slot) => ({
+    position: slot.position,
+    player: slot.player,
+    rating: slot.player ? playerRating(slot.player, slot.position, opts) : 0,
+  }));
+  return strengthFromRatings(ratings).strength;
+}
+
 function winsFromStrength(strength: number, filled: number): number {
   if (filled < POSITIONS.length) {
     const penalty = (POSITIONS.length - filled) * 12;
@@ -98,24 +128,7 @@ export function simulateSeason(
     }));
 
   const filled = ratings.filter((r) => r.player).length;
-  const mean =
-    filled === 0
-      ? 0
-      : ratings.reduce((sum, r) => sum + r.rating, 0) / POSITIONS.length;
-
-  const filledRatings = ratings.filter((r) => r.player).map((r) => r.rating);
-  const min = filledRatings.length ? Math.min(...filledRatings) : 0;
-  const max = filledRatings.length ? Math.max(...filledRatings) : 0;
-  const balance = filledRatings.length ? 1 - (max - min) * 0.35 : 0;
-  const legendCount = ratings.filter(
-    (r) => r.player && (r.player.tier >= 5 || r.player.hof),
-  ).length;
-  const legendBonus = legendCount * 0.016;
-
-  let strength = clamp(mean * 0.8 + min * 0.08 + balance * 0.04 + legendBonus, 0, 1);
-  if (filled === POSITIONS.length && mean >= 0.78 && min >= 0.68 && legendCount >= 5) {
-    strength = clamp(strength + 0.05, 0, 1);
-  }
+  const { strength, mean, min, max, balance } = strengthFromRatings(ratings);
   const wins = winsFromStrength(strength, filled);
   const losses = SEASON_GAMES - wins;
   const grade = gradeForWins(wins);

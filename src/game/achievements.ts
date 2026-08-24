@@ -16,8 +16,10 @@ export type AchievementId =
   | 'ice_debut'
   | 'challenge_debut'
   | 'tough_debut'
+  | 'eralock_debut'
   | 'hof_five'
-  | 'centurion';
+  | 'centurion'
+  | 'cup_champion';
 
 export interface AchievementDef {
   id: AchievementId;
@@ -92,6 +94,11 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Finish a Toughest Team season.',
   },
   {
+    id: 'eralock_debut',
+    title: 'Time Warp',
+    description: 'Finish an Era Lock season.',
+  },
+  {
     id: 'hof_five',
     title: 'Hall of Fame Six',
     description: 'Field five or more Hall of Famers.',
@@ -100,6 +107,11 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     id: 'centurion',
     title: 'Centurion',
     description: 'Play 100 seasons on this device.',
+  },
+  {
+    id: 'cup_champion',
+    title: 'Raise the Cup',
+    description: 'Win the Stanley Cup after the 82.',
   },
 ];
 
@@ -165,11 +177,13 @@ export function evaluateAchievements(input: EvaluateAchievementsInput): Achievem
   if (input.mode === 'iceiq') unlock('ice_debut');
   if (input.mode === 'challenge') unlock('challenge_debut');
   if (input.mode === 'tough') unlock('tough_debut');
+  if (input.mode === 'eralock') unlock('eralock_debut');
 
   const hofCount = input.rosterPlayers.filter((p) => p?.hof).length;
   if (hofCount >= 5) unlock('hof_five');
 
   if (input.career.gamesPlayed >= 100) unlock('centurion');
+  if (input.result.cup?.champion) unlock('cup_champion');
 
   if (newly.length) saveAchievements(unlocked);
   return newly;

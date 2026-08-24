@@ -7,6 +7,7 @@ export function ShareCard(props: {
   gradeLabel: string;
   modeLabel: string;
   rosterNames: string[];
+  challengeCode?: string | null;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -28,6 +29,7 @@ export function ShareCard(props: {
     props.gradeLabel,
     props.modeLabel,
     props.rosterNames.join('|'),
+    props.challengeCode,
   ]);
 
   const download = async () => {
