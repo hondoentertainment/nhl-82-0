@@ -10,3 +10,4 @@ blob-report
 .vercel
 *.tsbuildinfo
 .env*.local
+api/verify.bundle.js

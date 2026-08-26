@@ -1,8 +1,28 @@
 import { list, put } from '@vercel/blob';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { decodeChallengeSeed } from '../src/game/challenge';
-import { sanitizeDisplayName } from '../src/game/displayName';
-import { parsePicks, verifyChallengeRun } from '../src/game/verifyRun';
+
+const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** Keep in sync with src/game/challenge.ts — do not import ../src (Vercel ESM). */
+function decodeChallengeSeed(code: string): number | null {
+  const cleaned = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (cleaned.length < 4 || cleaned.length > 10) return null;
+  let n = 0;
+  for (const ch of cleaned) {
+    const idx = CODE_ALPHABET.indexOf(ch);
+    if (idx < 0) return null;
+    n = n * CODE_ALPHABET.length + idx;
+  }
+  return n >>> 0;
+}
+
+/** Keep in sync with src/game/displayName.ts */
+function sanitizeDisplayName(raw: string): string | null {
+  const name = raw.trim().replace(/\s+/g, ' ');
+  if (name.length < 2 || name.length > 20) return null;
+  if (!/^[A-Za-z0-9][A-Za-z0-9 .'-]{0,18}[A-Za-z0-9]?$/.test(name)) return null;
+  return name;
+}
 
 interface ChallengeEntry {
   id: string;
@@ -129,6 +149,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid id' });
       }
 
+      const { parsePicks, verifyChallengeRun } = await import('./verify.bundle.js');
       const picks = parsePicks(body.picks);
       if (!picks) {
         return res.status(400).json({ error: 'Missing or malformed picks' });

@@ -1,8 +1,18 @@
 import { del, head, put } from '@vercel/blob';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { utcDateKey } from '../src/game/daily';
-import { sanitizeDisplayName } from '../src/game/displayName';
-import { parsePicks, verifyDailyRun } from '../src/game/verifyRun';
+
+/** Keep in sync with src/game/daily.ts — do not import ../src (Vercel ESM). */
+function utcDateKey(date = new Date()): string {
+  return date.toISOString().slice(0, 10);
+}
+
+/** Keep in sync with src/game/displayName.ts */
+function sanitizeDisplayName(raw: string): string | null {
+  const name = raw.trim().replace(/\s+/g, ' ');
+  if (name.length < 2 || name.length > 20) return null;
+  if (!/^[A-Za-z0-9][A-Za-z0-9 .'-]{0,18}[A-Za-z0-9]?$/.test(name)) return null;
+  return name;
+}
 
 interface DailyEntry {
   id: string;
@@ -156,6 +166,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid id' });
       }
 
+      const { parsePicks, verifyDailyRun } = await import('./verify.bundle.js');
       const picks = parsePicks(body.picks);
       if (!picks) {
         return res.status(400).json({ error: 'Missing or malformed picks' });
