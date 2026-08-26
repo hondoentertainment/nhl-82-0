@@ -7,6 +7,7 @@ import {
 } from '../game/achievements';
 import { displayDailyStreak, loadCareer } from '../game/career';
 import { formatGameLogDate, loadGameLog } from '../game/gameLog';
+import { formatTapeLine } from '../game/seasonTape';
 import { useGame } from '../state/gameStore';
 import { DailyHistoryStrip } from './DailyHistory';
 import { DisplayNameField } from './DisplayNameField';
@@ -105,6 +106,13 @@ export function Career() {
                 </p>
                 {row.rosterNames.length > 0 && (
                   <p className="game-log-roster">{row.rosterNames.join(' · ')}</p>
+                )}
+                {row.tape && row.tape.length > 0 && (
+                  <ul className="game-log-tape" data-testid="game-log-tape">
+                    {row.tape.map((game) => (
+                      <li key={`${row.id}-${game.game}-${game.kind}`}>{formatTapeLine(game)}</li>
+                    ))}
+                  </ul>
                 )}
               </div>
             </li>

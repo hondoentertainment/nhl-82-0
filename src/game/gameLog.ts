@@ -1,4 +1,5 @@
 import { GAME_LOG_MAX, STORAGE_KEYS, type GameMode } from '../config/constants';
+import type { SeasonTapeGame } from '../types/game';
 
 export interface GameRecord {
   id: string;
@@ -13,6 +14,7 @@ export interface GameRecord {
   challengeCode?: string | null;
   lockedFranchiseId?: string | null;
   lockedDecade?: string | null;
+  tape?: SeasonTapeGame[];
 }
 
 export function loadGameLog(): GameRecord[] {

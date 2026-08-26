@@ -58,6 +58,17 @@ export interface CupResult {
   series: CupSeries[];
 }
 
+export type TapeKind = 'shutout' | 'blowout' | 'one-goal' | 'overtime';
+
+export interface SeasonTapeGame {
+  game: number;
+  kind: TapeKind;
+  gf: number;
+  ga: number;
+  opponent: string;
+  won: boolean;
+}
+
 export interface SeasonResult {
   wins: number;
   losses: number;
@@ -69,6 +80,7 @@ export interface SeasonResult {
   bestPickId: string | null;
   weakestSlot: Position | null;
   toughnessScore: number;
+  tape: SeasonTapeGame[];
   cup?: CupResult;
 }
 

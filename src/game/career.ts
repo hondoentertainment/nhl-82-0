@@ -143,6 +143,7 @@ export function recordCareerResult(input: RecordCareerInput): CareerStats {
     challengeCode: input.challengeCode ?? null,
     lockedFranchiseId: input.lockedFranchiseId ?? null,
     lockedDecade: input.lockedDecade ?? null,
+    tape: input.result.tape,
   });
 
   return next;

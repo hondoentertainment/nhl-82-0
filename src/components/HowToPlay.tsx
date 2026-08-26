@@ -88,7 +88,8 @@ export function HowToPlay() {
       </ul>
       <p>Balance beats one superstar and empty slots. Incomplete rosters are capped hard.</p>
       <p>
-        A PLAYOFF TEAM grade (44+ wins) also runs a four-round Stanley Cup. Daily and Challenge still
+        A PLAYOFF TEAM grade (44+ wins) also runs a four-round Stanley Cup. After the 82, a short
+        season tape lists shutouts, blowouts, one-goal games, and overtime. Daily and Challenge still
         score the 82-game record only.
       </p>
     </section>

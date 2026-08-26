@@ -30,5 +30,7 @@ describe('simulateSeason', () => {
     const result = simulateSeason(roster);
     expect(result.wins).toBeGreaterThanOrEqual(70);
     expect(result.losses).toBe(82 - result.wins);
+    expect(result.tape.length).toBeGreaterThanOrEqual(5);
+    expect(result.tape.length).toBeLessThanOrEqual(8);
   });
 });

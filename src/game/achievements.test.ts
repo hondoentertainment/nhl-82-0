@@ -21,6 +21,7 @@ describe('achievements', () => {
         bestPickId: null,
         weakestSlot: null,
         toughnessScore: 700,
+        tape: [],
       },
       rosterPlayers: [],
       career: loadCareer(),

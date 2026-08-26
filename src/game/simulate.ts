@@ -1,6 +1,7 @@
 import { POSITIONS, SEASON_GAMES, type Position } from '../config/constants';
 import type { Player, RosterSlot, SeasonResult } from '../types/game';
 import { gradeForWins, scoreFromWins } from './grades';
+import { buildSeasonTape } from './seasonTape';
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
@@ -180,5 +181,6 @@ export function simulateSeason(
     bestPickId: best?.player?.id ?? null,
     weakestSlot: worst?.position ?? null,
     toughnessScore: toughness,
+    tape: buildSeasonTape(roster, wins),
   };
 }

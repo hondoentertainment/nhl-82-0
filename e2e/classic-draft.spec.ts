@@ -10,6 +10,12 @@ test.describe('classic draft', () => {
     await playFullDraft(page);
     await expect(page.getByTestId('final-record')).toHaveText(/\d+-\d+/);
     await expect(page.getByTestId('cup-run')).toBeVisible();
+    await expect(page.getByTestId('season-tape')).toBeVisible();
+    const tapeGames = page.getByTestId('season-tape-game');
+    await expect(tapeGames.first()).toBeVisible();
+    const tapeCount = await tapeGames.count();
+    expect(tapeCount).toBeGreaterThanOrEqual(5);
+    expect(tapeCount).toBeLessThanOrEqual(8);
   });
 
   test('undoes the last pick before the next spin', async ({ page }) => {

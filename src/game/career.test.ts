@@ -19,6 +19,7 @@ const sampleResult = {
   bestPickId: null,
   weakestSlot: null,
   toughnessScore: 800,
+  tape: [],
 };
 
 describe('career', () => {

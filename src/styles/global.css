@@ -943,6 +943,18 @@ a {
   color: var(--cream);
 }
 
+.season-tape {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.season-tape li {
+  color: var(--cream);
+}
+
 .game-log {
   list-style: none;
   margin: 0 0 var(--space-5);
@@ -951,7 +963,7 @@ a {
   gap: var(--space-2);
 }
 
-.game-log li {
+.game-log > li {
   padding: var(--space-3);
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
@@ -959,7 +971,7 @@ a {
   color: var(--cream);
 }
 
-.game-log li p {
+.game-log > li p {
   margin: 0.25rem 0 0;
   color: var(--cream);
   opacity: 0.8;
@@ -969,6 +981,23 @@ a {
 .game-log-roster {
   font-size: 0.85rem;
   line-height: 1.4;
+}
+
+.game-log-tape {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.game-log-tape li {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 0.85rem;
+  opacity: 0.85;
 }
 
 .name-field {

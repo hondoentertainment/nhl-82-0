@@ -3,6 +3,7 @@ import { ACHIEVEMENT_BY_ID } from '../game/achievements';
 import { trackEvent } from '../game/analytics';
 import { shouldCelebrate } from '../game/celebrate';
 import { challengeShareUrl } from '../game/challenge';
+import { formatTapeLine } from '../game/seasonTape';
 import { useGame } from '../state/gameStore';
 import { Confetti } from './Confetti';
 import { RematchBoard } from './RematchBoard';
@@ -130,6 +131,22 @@ export function ResultCard() {
           </ul>
         </div>
       </div>
+
+      {result.tape.length > 0 && (
+        <div className="panel" data-testid="season-tape" style={{ marginTop: '1.5rem' }}>
+          <p className="section-label">Season tape</p>
+          <p className="lede" style={{ marginTop: 0 }}>
+            Headline games from the 82. Daily and Challenge still score the record only.
+          </p>
+          <ol className="season-tape">
+            {result.tape.map((game) => (
+              <li key={`${game.game}-${game.kind}`} data-testid="season-tape-game">
+                {formatTapeLine(game)}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       {result.cup && (
         <div className="panel" data-testid="cup-run" style={{ marginTop: '1.5rem' }}>

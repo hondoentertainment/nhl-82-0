@@ -14,6 +14,16 @@ const sampleResult = {
   bestPickId: null,
   weakestSlot: null,
   toughnessScore: 800,
+  tape: [
+    {
+      game: 14,
+      kind: 'shutout',
+      gf: 3,
+      ga: 0,
+      opponent: 'Bruins',
+      won: true,
+    },
+  ],
 };
 
 function makeRecord(partial: Partial<GameRecord> = {}): GameRecord {
@@ -67,6 +77,7 @@ describe('game log', () => {
     expect(log[0]?.wins).toBe(62);
     expect(log[0]?.rosterNames).toEqual(['Gretzky', 'Messier']);
     expect(log[0]?.challengeCode).toBe('ABCDEF');
+    expect(log[0]?.tape).toEqual(sampleResult.tape);
   });
 
   it('formats stored timestamps as UTC dates', () => {
