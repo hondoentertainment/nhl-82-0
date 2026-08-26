@@ -1,10 +1,10 @@
-import { del, head, put } from '@vercel/blob';
+import { list, put } from '@vercel/blob';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { utcDateKey } from '../src/game/daily';
+import { decodeChallengeSeed } from '../src/game/challenge';
 import { sanitizeDisplayName } from '../src/game/displayName';
-import { parsePicks, verifyDailyRun } from '../src/game/verifyRun';
+import { parsePicks, verifyChallengeRun } from '../src/game/verifyRun';
 
-interface DailyEntry {
+interface ChallengeEntry {
   id: string;
   wins: number;
   losses: number;
@@ -14,13 +14,7 @@ interface DailyEntry {
   displayName?: string;
 }
 
-interface DailyBoard {
-  dateKey: string;
-  entries: DailyEntry[];
-}
-
-const MAX_ENTRIES = 100;
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_ENTRIES = 50;
 const ID_RE = /^[A-Za-z0-9_-]{1,80}$/;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 10;
@@ -47,8 +41,12 @@ function cors(res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-function blobPath(dateKey: string): string {
-  return `daily-boards/${dateKey}.json`;
+function prefixFor(code: string): string {
+  return `challenge-boards/${code}/`;
+}
+
+function entryPath(code: string, id: string): string {
+  return `${prefixFor(code)}id/${id}.json`;
 }
 
 function parseBody(req: VercelRequest): Record<string, unknown> {
@@ -70,44 +68,27 @@ function parseBody(req: VercelRequest): Record<string, unknown> {
   return req.body as Record<string, unknown>;
 }
 
-async function readBoard(dateKey: string): Promise<DailyBoard> {
-  const pathname = blobPath(dateKey);
-  try {
-    const meta = await head(pathname);
-    const res = await fetch(meta.url, { cache: 'no-store' });
-    if (!res.ok) return { dateKey, entries: [] };
-    const data = (await res.json()) as DailyBoard;
-    return {
-      dateKey,
-      entries: Array.isArray(data.entries) ? data.entries : [],
-    };
-  } catch {
-    return { dateKey, entries: [] };
-  }
+async function listEntryBlobs(code: string) {
+  const { blobs } = await list({ prefix: prefixFor(code), limit: 1000 });
+  return blobs.sort((a, b) => a.pathname.localeCompare(b.pathname));
 }
 
-async function writeBoard(board: DailyBoard): Promise<void> {
-  const pathname = blobPath(board.dateKey);
-  const payload = JSON.stringify(board);
-  try {
-    await put(pathname, payload, {
-      access: 'public',
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      contentType: 'application/json',
-    });
-  } catch {
-    try {
-      await del(pathname);
-    } catch {
-      /* first write */
-    }
-    await put(pathname, payload, {
-      access: 'public',
-      addRandomSuffix: false,
-      contentType: 'application/json',
-    });
-  }
+async function readTopEntries(code: string, limit: number): Promise<ChallengeEntry[]> {
+  const blobs = await listEntryBlobs(code);
+  const entries = await Promise.all(
+    blobs.map(async (blob) => {
+      try {
+        const res = await fetch(blob.url, { cache: 'no-store' });
+        if (!res.ok) return null;
+        return (await res.json()) as ChallengeEntry;
+      } catch {
+        return null;
+      }
+    }),
+  );
+  const valid = entries.filter((e): e is ChallengeEntry => !!e);
+  valid.sort((a, b) => b.wins - a.wins || a.createdAt.localeCompare(b.createdAt));
+  return valid.slice(0, limit);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -116,22 +97,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return res.status(503).json({
-      error: 'Global daily board not configured',
+      error: 'Challenge board not configured',
       entries: [],
     });
   }
 
   try {
     if (req.method === 'GET') {
-      const dateKey = String(req.query.date ?? '');
-      if (!DATE_RE.test(dateKey)) {
-        return res.status(400).json({ error: 'Invalid date' });
+      const code = String(req.query.code ?? '').toUpperCase();
+      if (decodeChallengeSeed(code) == null) {
+        return res.status(400).json({ error: 'Invalid code' });
       }
-      const board = await readBoard(dateKey);
-      const entries = [...board.entries].sort(
-        (a, b) => b.wins - a.wins || a.createdAt.localeCompare(b.createdAt),
-      );
-      return res.status(200).json({ dateKey, entries: entries.slice(0, MAX_ENTRIES) });
+      const entries = await readTopEntries(code, MAX_ENTRIES);
+      return res.status(200).json({ code, entries });
     }
 
     if (req.method === 'POST') {
@@ -140,15 +118,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const body = parseBody(req);
-      const dateKey = typeof body.dateKey === 'string' ? body.dateKey : '';
-      if (!DATE_RE.test(dateKey)) {
-        return res.status(400).json({ error: 'Invalid dateKey' });
-      }
-
-      const today = utcDateKey();
-      const yesterday = utcDateKey(new Date(Date.now() - 86_400_000));
-      if (dateKey !== today && dateKey !== yesterday) {
-        return res.status(400).json({ error: 'Board is closed for that date' });
+      const code = typeof body.code === 'string' ? body.code.toUpperCase() : '';
+      const seed = decodeChallengeSeed(code);
+      if (seed == null) {
+        return res.status(400).json({ error: 'Invalid code' });
       }
 
       const id = typeof body.id === 'string' ? body.id : '';
@@ -161,7 +134,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Missing or malformed picks' });
       }
 
-      const verified = verifyDailyRun(dateKey, picks);
+      const verified = verifyChallengeRun(seed, picks);
       if (!verified.ok) {
         return res.status(400).json({ error: `Run rejected: ${verified.error}` });
       }
@@ -169,7 +142,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const displayName =
         typeof body.displayName === 'string' ? sanitizeDisplayName(body.displayName) : null;
 
-      const entry: DailyEntry = {
+      const entry: ChallengeEntry = {
         id,
         wins: verified.result.wins,
         losses: verified.result.losses,
@@ -179,21 +152,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ...(displayName ? { displayName } : {}),
       };
 
-      const board = await readBoard(dateKey);
-      const existingIdx = board.entries.findIndex((e) => e.id === entry.id);
-      if (existingIdx >= 0) {
-        board.entries[existingIdx] = entry;
-      } else {
-        board.entries.push(entry);
-      }
-      board.entries.sort((a, b) => b.wins - a.wins || a.createdAt.localeCompare(b.createdAt));
-      board.entries = board.entries.slice(0, MAX_ENTRIES);
-      await writeBoard(board);
+      await put(entryPath(code, id), JSON.stringify(entry), {
+        access: 'public',
+        addRandomSuffix: false,
+        allowOverwrite: true,
+        contentType: 'application/json',
+      });
 
-      const rank = board.entries.findIndex((e) => e.id === entry.id) + 1;
+      const after = await readTopEntries(code, MAX_ENTRIES);
+      const rank = after.findIndex((e) => e.id === id) + 1;
+
       return res.status(200).json({
         ok: true,
-        rank,
+        rank: rank || null,
         wins: entry.wins,
         losses: entry.losses,
         gradeLabel: entry.gradeLabel,
@@ -202,7 +173,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(405).json({ error: 'Method Not Allowed' });
   } catch (err) {
-    console.error('[api/daily]', err);
+    console.error('[api/challenge-board]', err);
     const message = err instanceof Error ? err.message : 'Internal Server Error';
     return res.status(500).json({ error: message });
   }

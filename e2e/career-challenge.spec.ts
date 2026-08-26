@@ -14,5 +14,6 @@ test.describe('career and challenge', () => {
     await page.getByRole('button', { name: 'Career' }).click();
     await expect(page.getByTestId('career')).toBeVisible();
     await expect(page.getByTestId('career-stats')).toContainText('1');
+    await expect(page.getByTestId('game-log')).toContainText(/\d+-\d+/);
   });
 });

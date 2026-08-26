@@ -1,7 +1,9 @@
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Career } from './components/Career';
 import { DecadeSelect } from './components/DecadeSelect';
 import { Draft } from './components/Draft';
+import { Encyclopedia } from './components/Encyclopedia';
 import { FranchiseSelect } from './components/FranchiseSelect';
 import { Home } from './components/Home';
 import { HowToPlay } from './components/HowToPlay';
@@ -30,6 +32,8 @@ function ScreenRouter() {
       return <Leaderboard />;
     case 'career':
       return <Career />;
+    case 'encyclopedia':
+      return <Encyclopedia />;
     default:
       return <Home />;
   }
@@ -47,6 +51,7 @@ export default function App() {
           <ScreenRouter />
         </main>
         <Analytics />
+        <SpeedInsights />
       </div>
     </GameProvider>
   );

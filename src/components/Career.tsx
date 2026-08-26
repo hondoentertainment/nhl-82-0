@@ -1,12 +1,15 @@
 import { MODE_LABELS, type GameMode } from '../config/constants';
+import { FRANCHISE_BY_ID } from '../data/franchises';
 import {
   ACHIEVEMENTS,
   loadAchievements,
   unlockedCount,
 } from '../game/achievements';
 import { displayDailyStreak, loadCareer } from '../game/career';
+import { formatGameLogDate, loadGameLog } from '../game/gameLog';
 import { useGame } from '../state/gameStore';
 import { DailyHistoryStrip } from './DailyHistory';
+import { DisplayNameField } from './DisplayNameField';
 
 const MODE_ORDER: GameMode[] = [
   'classic',
@@ -22,6 +25,7 @@ const MODE_ORDER: GameMode[] = [
 export function Career() {
   const { setScreen } = useGame();
   const career = loadCareer();
+  const gameLog = loadGameLog();
   const unlocked = loadAchievements();
   const streak = displayDailyStreak(career);
   const avg =
@@ -75,6 +79,39 @@ export function Career() {
       )}
 
       <DailyHistoryStrip />
+      <DisplayNameField />
+
+      <h3 className="subhead">Season log</h3>
+      <ul className="game-log" data-testid="game-log">
+        {gameLog.map((row) => {
+          const franchise = row.lockedFranchiseId
+            ? FRANCHISE_BY_ID[row.lockedFranchiseId]?.name
+            : null;
+          return (
+            <li key={row.id} data-testid={`game-log-${row.id}`}>
+              <div>
+                <strong data-testid="game-log-record">
+                  {row.wins}-{row.losses}
+                </strong>{' '}
+                · {row.gradeLabel}
+                <p>
+                  {MODE_LABELS[row.mode]}
+                  {franchise ? ` · ${franchise}` : ''}
+                  {row.lockedDecade ? ` · ${row.lockedDecade}` : ''}
+                  {row.challengeCode ? ` · ${row.challengeCode}` : ''}
+                  {row.dateKey ? ` · ${row.dateKey}` : ''}
+                  {' · '}
+                  {formatGameLogDate(row.createdAt)}
+                </p>
+                {row.rosterNames.length > 0 && (
+                  <p className="game-log-roster">{row.rosterNames.join(' · ')}</p>
+                )}
+              </div>
+            </li>
+          );
+        })}
+        {!gameLog.length && <li className="empty-pool">No seasons logged yet.</li>}
+      </ul>
 
       <h3 className="subhead">By mode</h3>
       <ul className="mode-stats">

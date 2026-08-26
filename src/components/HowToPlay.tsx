@@ -62,18 +62,20 @@ export function HowToPlay() {
           highlight-reel scoring.
         </li>
         <li>
-          <strong>Daily</strong> — seeded by UTC date. One attempt per day. Results post to the
-          global daily board when available.
+          <strong>Daily</strong> — seeded by UTC date. One attempt per day. The server replays
+          your picks and posts the verified record to the global board.
         </li>
         <li>
           <strong>Challenge</strong> — share a code so friends face the same spins. No skips.
+          Finishes post to a shared rematch board.
         </li>
       </ul>
 
       <h3>Career & achievements</h3>
       <p>
-        Every finished season updates local career stats (best wins, mode breakdown, daily streak)
-        and can unlock badges. Progress stays on this device.
+        Every finished season updates local career stats, a season log, and can unlock badges.
+        Set a board name on Home or Career so Daily and Challenge ranks show a handle. Search the
+        encyclopedia to practice Ice IQ. Progress stays on this device.
       </p>
 
       <h3>Grades</h3>

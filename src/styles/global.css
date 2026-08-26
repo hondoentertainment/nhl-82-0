@@ -943,6 +943,50 @@ a {
   color: var(--cream);
 }
 
+.game-log {
+  list-style: none;
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.game-log li {
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--cream);
+}
+
+.game-log li p {
+  margin: 0.25rem 0 0;
+  color: var(--cream);
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+.game-log-roster {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.name-field {
+  margin-top: var(--space-4);
+}
+
+.name-field.compact {
+  margin-top: var(--space-5);
+}
+
+.pedia-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reel.spinning .reel-value {
     animation: none;

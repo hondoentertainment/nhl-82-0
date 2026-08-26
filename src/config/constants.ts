@@ -80,6 +80,7 @@ export const GRADE_BANDS: GradeBand[] = [
 
 export const LEADERBOARD_MIN_WINS = 70;
 export const LEADERBOARD_MAX = 50;
+export const GAME_LOG_MAX = 500;
 export const STORAGE_KEYS = {
   leaderboard: 'nhl820_leaderboard',
   daily: 'nhl820_daily',
@@ -89,4 +90,6 @@ export const STORAGE_KEYS = {
   dailyHistory: 'nhl820_daily_history',
   installTip: 'nhl820_install_tip',
   rematch: 'nhl820_rematch',
+  displayName: 'nhl820_display_name',
+  gameLog: 'nhl820_game_log',
 } as const;

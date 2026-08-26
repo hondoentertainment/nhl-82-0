@@ -15,6 +15,8 @@ test.describe('home', () => {
     await expect(page.getByTestId('mode-challenge')).toBeVisible();
     await expect(page.locator('.skip-link')).toHaveAttribute('href', '#main');
     await expect(page.locator('#main')).toBeVisible();
+    await expect(page.getByTestId('display-name')).toBeVisible();
+    await expect(page.getByTestId('nav-encyclopedia')).toBeVisible();
   });
 
   test('opens how to play, leaderboards, and career', async ({ page }) => {

@@ -1,6 +1,7 @@
-import { STORAGE_KEYS, type GameMode } from '../config/constants';
+import { STORAGE_KEYS, type Decade, type GameMode } from '../config/constants';
 import type { SeasonResult } from '../types/game';
 import { utcDateKey } from './daily';
+import { appendGameRecord } from './gameLog';
 
 export interface ModeCareer {
   plays: number;
@@ -86,6 +87,10 @@ export interface RecordCareerInput {
   mode: GameMode;
   result: SeasonResult;
   dateKey?: string | null;
+  rosterNames?: string[];
+  challengeCode?: string | null;
+  lockedFranchiseId?: string | null;
+  lockedDecade?: Decade | null;
 }
 
 export function recordCareerResult(input: RecordCareerInput): CareerStats {
@@ -124,6 +129,22 @@ export function recordCareerResult(input: RecordCareerInput): CareerStats {
   };
 
   saveCareer(next);
+
+  appendGameRecord({
+    id: `${Date.now()}-${input.mode}-${input.result.wins}`,
+    mode: input.mode,
+    wins: input.result.wins,
+    losses: input.result.losses,
+    gradeLabel: input.result.gradeLabel,
+    score: input.result.score,
+    rosterNames: input.rosterNames ?? [],
+    createdAt: next.updatedAt,
+    dateKey: input.dateKey ?? null,
+    challengeCode: input.challengeCode ?? null,
+    lockedFranchiseId: input.lockedFranchiseId ?? null,
+    lockedDecade: input.lockedDecade ?? null,
+  });
+
   return next;
 }
 

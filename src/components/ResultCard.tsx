@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ACHIEVEMENT_BY_ID } from '../game/achievements';
+import { trackEvent } from '../game/analytics';
 import { shouldCelebrate } from '../game/celebrate';
 import { challengeShareUrl } from '../game/challenge';
 import { useGame } from '../state/gameStore';
@@ -49,6 +50,7 @@ export function ResultCard() {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(share);
+      trackEvent('share_copy', { mode: modeLabel });
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -60,6 +62,7 @@ export function ResultCard() {
     if (!state.challengeCode) return;
     try {
       await navigator.clipboard.writeText(challengeShareUrl(state.challengeCode));
+      trackEvent('challenge_open', { code: state.challengeCode });
       setLinkCopied(true);
       window.setTimeout(() => setLinkCopied(false), 2000);
     } catch {

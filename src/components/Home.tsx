@@ -8,6 +8,7 @@ import { isDailyCompletedToday, loadDailyRecord, utcDateKey } from '../game/dail
 import { formatSalary, SALARY_CAP_M } from '../game/salary';
 import { useGame } from '../state/gameStore';
 import { DailyHistoryStrip } from './DailyHistory';
+import { DisplayNameField } from './DisplayNameField';
 import { InstallTip } from './InstallTip';
 
 export function Home() {
@@ -50,6 +51,7 @@ export function Home() {
       </p>
       <InstallTip />
       <DailyHistoryStrip compact />
+      <DisplayNameField compact />
 
       {(streak > 0 || career.gamesPlayed > 0) && (
         <p className="career-chip" data-testid="home-career-chip">
@@ -188,6 +190,13 @@ export function Home() {
         </button>
         <button type="button" data-testid="nav-career" onClick={() => setScreen('career')}>
           Career
+        </button>
+        <button
+          type="button"
+          data-testid="nav-encyclopedia"
+          onClick={() => setScreen('encyclopedia')}
+        >
+          Encyclopedia
         </button>
       </div>
 
