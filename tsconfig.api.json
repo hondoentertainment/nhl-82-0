@@ -16,5 +16,6 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["api"]
+  "include": ["api", "src/game", "src/config", "src/data", "src/types"],
+  "exclude": ["src/**/*.test.ts"]
 }
