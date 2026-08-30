@@ -90,7 +90,9 @@ export function ResultCard() {
           <p className="toast">You made the local all-time board (70+ Classic wins).</p>
         )}
         {state.dailyRank != null && (
-          <p className="toast">Global daily rank: #{state.dailyRank}</p>
+          <p className="toast" data-testid="daily-rank">
+            Global daily rank: #{state.dailyRank}
+          </p>
         )}
         {state.challengeCode && (
           <p className="toast" data-testid="result-challenge-code">

@@ -116,7 +116,7 @@ export function Leaderboard() {
             </div>
           )}
           {!loading && !!dailyEntries.length && (
-            <ol className="leaderboard-list">
+            <ol className="leaderboard-list" data-testid="daily-board-list">
               {(tab === 'yesterday' ? dailyEntries.slice(0, 10) : dailyEntries).map((e, i) => (
                 <li key={e.id}>
                   <span>{i + 1}</span>
