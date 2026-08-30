@@ -1,4 +1,5 @@
 import type { Decade, GameMode, Position } from '../config/constants';
+import { playerFilterForMode } from '../data/nations';
 import { dailyRng, utcDateKey } from './daily';
 import { allowsRedraw } from './draftRules';
 import { mulberry32 } from './rng';
@@ -42,6 +43,7 @@ function rngFor(req: SpinRequest): () => number {
 export function spinForRound(req: SpinRequest): SpinResult {
   const rand = rngFor(req);
   const { openPositions, drafted, lockedFranchiseId, lockedDecade } = req;
+  const filter = playerFilterForMode(req.mode);
 
   let result = spinWithEligibility(
     rand,
@@ -50,11 +52,12 @@ export function spinForRound(req: SpinRequest): SpinResult {
     40,
     lockedFranchiseId,
     lockedDecade,
+    filter,
   );
 
   if (
     !allowsRedraw(req.mode) &&
-    getAvailablePlayers(result, openPositions, drafted).length === 0
+    getAvailablePlayers(result, openPositions, drafted, filter).length === 0
   ) {
     for (let i = 0; i < 60; i++) {
       result = spinWithEligibility(
@@ -64,8 +67,9 @@ export function spinForRound(req: SpinRequest): SpinResult {
         20,
         lockedFranchiseId,
         lockedDecade,
+        filter,
       );
-      if (getAvailablePlayers(result, openPositions, drafted).length > 0) break;
+      if (getAvailablePlayers(result, openPositions, drafted, filter).length > 0) break;
     }
   }
 

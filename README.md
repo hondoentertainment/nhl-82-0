@@ -14,12 +14,14 @@ Fan-made. Not affiliated with the NHL.
 - **One Franchise** — lock a club, spin decades only
 - **Era Lock** — lock a decade, spin franchises only
 - **Toughest Team** — penalty minutes and sandpaper drive the sim
+- **Ironman** — Classic rules, no skips, redraws, or undo
+- **Four Nations** — Canada, USA, Sweden, Finland only
 - **Daily Challenge** — same UTC-seeded spins, no skips, verified global board via `/api/daily`
 - **Challenge a friend** — shareable codes / `/c/CODE` links, rematch board via `/api/challenge-board`
 
 ## After the draft
 
-The 82-game sim still scores wins and losses only. A short **season tape** lists headline games (shutouts, blowouts, one-goal, overtime) on the result screen and in the Career log. 44+ wins also run a Stanley Cup — Daily and Challenge still post the regular-season record.
+The 82-game sim still scores wins and losses only. Matching sweaters on the first line or D-pair add a small **chemistry** bonus. A short **season tape** lists headline games (shutouts, blowouts, one-goal, overtime) on the result screen and in the Career log. 44+ wins also run a Stanley Cup — Daily and Challenge still post the regular-season record.
 
 ## Career
 

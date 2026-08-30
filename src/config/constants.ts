@@ -36,7 +36,9 @@ export type GameMode =
   | 'franchise'
   | 'challenge'
   | 'tough'
-  | 'eralock';
+  | 'eralock'
+  | 'ironman'
+  | 'fournations';
 
 export const MODE_LABELS: Record<GameMode, string> = {
   classic: 'Classic',
@@ -47,6 +49,8 @@ export const MODE_LABELS: Record<GameMode, string> = {
   challenge: 'Challenge',
   tough: 'Toughest Team',
   eralock: 'Era Lock',
+  ironman: 'Ironman',
+  fournations: 'Four Nations',
 };
 
 /** Spin animation duration; shortened when `window.__E2E__` is set */

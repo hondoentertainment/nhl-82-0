@@ -16,8 +16,12 @@ describe('draftRules', () => {
     expect(canUndoLastPick('classic')).toBe(true);
     expect(canUndoLastPick('tough')).toBe(true);
     expect(canUndoLastPick('eralock')).toBe(true);
+    expect(canUndoLastPick('fournations')).toBe(true);
+    expect(canUndoLastPick('ironman')).toBe(false);
     expect(canUndoLastPick('daily')).toBe(false);
     expect(allowsRedraw('eralock')).toBe(true);
+    expect(allowsRedraw('ironman')).toBe(false);
+    expect(canRespinEmptyPool('ironman', 'no-fits')).toBe(false);
   });
 
   it('flags empty and over-cap pools', () => {

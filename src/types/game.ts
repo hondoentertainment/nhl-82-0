@@ -81,6 +81,8 @@ export interface SeasonResult {
   weakestSlot: Position | null;
   toughnessScore: number;
   tape: SeasonTapeGame[];
+  chemistryBonus?: number;
+  chemistryNotes?: string[];
   cup?: CupResult;
 }
 

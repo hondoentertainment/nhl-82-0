@@ -32,11 +32,10 @@ export function HowToPlay() {
 
       <h3>Skips, undo, and redraws</h3>
       <p>
-        Classic, Ice IQ, Salary Cap, and Toughest Team start with one team skip and one decade skip.
-        One Franchise locks a club and gets two decade skips. Era Lock locks a decade and gets two
-        team skips. Those modes can undo the last pick, and an empty pool auto-redraws (that is not a
-        skip). Daily and Challenge have no skips, no undo, and no redraw — everyone faces the same
-        draws.
+        Classic, Ice IQ, Salary Cap, Toughest Team, and Four Nations start with one team skip and one
+        decade skip. One Franchise locks a club and gets two decade skips. Era Lock locks a decade
+        and gets two team skips. Those modes can undo the last pick, and an empty pool auto-redraws
+        (that is not a skip). Daily, Challenge, and Ironman have no skips, no undo, and no redraw.
       </p>
 
       <h3>Modes</h3>
@@ -60,6 +59,14 @@ export function HowToPlay() {
         <li>
           <strong>Toughest Team</strong> — the sim weights penalty minutes and sandpaper over
           highlight-reel scoring.
+        </li>
+        <li>
+          <strong>Ironman</strong> — Classic rules with nothing to fall back on: no skips, no
+          redraws, no undo.
+        </li>
+        <li>
+          <strong>Four Nations</strong> — only Canada, USA, Sweden, and Finland. Same skips as
+          Classic.
         </li>
         <li>
           <strong>Daily</strong> — seeded by UTC date. One attempt per day. The server replays
@@ -89,8 +96,9 @@ export function HowToPlay() {
       <p>Balance beats one superstar and empty slots. Incomplete rosters are capped hard.</p>
       <p>
         A PLAYOFF TEAM grade (44+ wins) also runs a four-round Stanley Cup. After the 82, a short
-        season tape lists shutouts, blowouts, one-goal games, and overtime. Daily and Challenge still
-        score the 82-game record only.
+        season tape lists shutouts, blowouts, one-goal games, and overtime. Matching sweaters on the
+        forward line or D-pair add a small chemistry bonus. Daily and Challenge still score the
+        82-game record only.
       </p>
     </section>
   );

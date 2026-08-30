@@ -17,6 +17,8 @@ export type AchievementId =
   | 'challenge_debut'
   | 'tough_debut'
   | 'eralock_debut'
+  | 'ironman_debut'
+  | 'fournations_debut'
   | 'hof_five'
   | 'centurion'
   | 'cup_champion';
@@ -99,6 +101,16 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Finish an Era Lock season.',
   },
   {
+    id: 'ironman_debut',
+    title: 'No Safety Net',
+    description: 'Finish an Ironman season.',
+  },
+  {
+    id: 'fournations_debut',
+    title: 'Face-Off Six',
+    description: 'Finish a Four Nations season.',
+  },
+  {
     id: 'hof_five',
     title: 'Hall of Fame Six',
     description: 'Field five or more Hall of Famers.',
@@ -178,6 +190,8 @@ export function evaluateAchievements(input: EvaluateAchievementsInput): Achievem
   if (input.mode === 'challenge') unlock('challenge_debut');
   if (input.mode === 'tough') unlock('tough_debut');
   if (input.mode === 'eralock') unlock('eralock_debut');
+  if (input.mode === 'ironman') unlock('ironman_debut');
+  if (input.mode === 'fournations') unlock('fournations_debut');
 
   const hofCount = input.rosterPlayers.filter((p) => p?.hof).length;
   if (hofCount >= 5) unlock('hof_five');

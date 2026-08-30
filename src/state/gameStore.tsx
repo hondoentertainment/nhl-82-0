@@ -31,7 +31,8 @@ import { submitDailyBoard } from '../game/dailyBoard';
 import { recordDailyHistory } from '../game/dailyHistory';
 import { loadDisplayName } from '../game/displayName';
 import { spinForRound } from '../game/draftSequence';
-import { canUndoLastPick } from '../game/draftRules';
+import { playerFilterForMode } from '../data/nations';
+import { allowsRedraw, canUndoLastPick } from '../game/draftRules';
 import { tryAddLeaderboardEntry } from '../game/leaderboard';
 import { simulateCup } from '../game/playoffs';
 import { recordRematch } from '../game/rematch';
@@ -181,6 +182,7 @@ function reducer(state: GameState, action: Action): GameState {
       const isFranchise = action.mode === 'franchise';
       const isChallenge = action.mode === 'challenge';
       const isEraLock = action.mode === 'eralock';
+      const isIronman = action.mode === 'ironman';
       const dateKey = isDaily ? utcDateKey() : null;
       let seed: number;
       let challengeCode: string | null = null;
@@ -205,9 +207,12 @@ function reducer(state: GameState, action: Action): GameState {
           isFranchise ||
           isChallenge ||
           isEraLock ||
-          action.mode === 'tough',
-        teamSkips: isDaily || isFranchise || isChallenge ? 0 : isEraLock ? 2 : 1,
-        decadeSkips: isDaily || isChallenge || isEraLock ? 0 : isFranchise ? 2 : 1,
+          isIronman ||
+          action.mode === 'tough' ||
+          action.mode === 'fournations',
+        teamSkips: isIronman || isDaily || isFranchise || isChallenge ? 0 : isEraLock ? 2 : 1,
+        decadeSkips:
+          isIronman || isDaily || isChallenge || isEraLock ? 0 : isFranchise ? 2 : 1,
         randSeed: seed,
         dateKey,
         roster: emptyRoster(),
@@ -226,7 +231,12 @@ function reducer(state: GameState, action: Action): GameState {
     case 'SKIP_TEAM': {
       if (!state.spin || state.teamSkips <= 0 || state.lockedFranchiseId) return state;
       const rand = createRng(state.randSeed + state.round * 97 + 11);
-      const spin = spinNewFranchise(rand, state.spin.decade, state.spin.franchiseId);
+      const spin = spinNewFranchise(
+        rand,
+        state.spin.decade,
+        state.spin.franchiseId,
+        playerFilterForMode(state.mode),
+      );
       return {
         ...state,
         teamSkips: state.teamSkips - 1,
@@ -237,8 +247,9 @@ function reducer(state: GameState, action: Action): GameState {
     case 'SKIP_DECADE': {
       if (state.decadeSkips <= 0) return state;
       const rand = createRng(state.randSeed + state.round * 91 + 17);
+      const filter = playerFilterForMode(state.mode);
       const spin = state.lockedFranchiseId
-        ? spinDecadeForFranchise(rand, state.lockedFranchiseId, state.spin?.decade)
+        ? spinDecadeForFranchise(rand, state.lockedFranchiseId, state.spin?.decade, filter)
         : spinWithEligibility(
             rand,
             openPositions(state.roster),
@@ -246,6 +257,7 @@ function reducer(state: GameState, action: Action): GameState {
             40,
             state.lockedFranchiseId,
             state.lockedDecade,
+            filter,
           );
       return {
         ...state,
@@ -255,9 +267,10 @@ function reducer(state: GameState, action: Action): GameState {
       };
     }
     case 'RESPIN': {
-      if (!state.spin || state.mode === 'daily' || state.mode === 'challenge') return state;
+      if (!state.spin || !allowsRedraw(state.mode)) return state;
       const open = openPositions(state.roster);
       const taken = takenIds(state.roster);
+      const filter = playerFilterForMode(state.mode);
       let nextSeed = state.randSeed + 41;
       let spin = state.spin;
       for (let i = 0; i < 24; i++) {
@@ -269,8 +282,9 @@ function reducer(state: GameState, action: Action): GameState {
           40,
           state.lockedFranchiseId,
           state.lockedDecade,
+          filter,
         );
-        const pool = getAvailablePlayers(spin, open, taken);
+        const pool = getAvailablePlayers(spin, open, taken, filter);
         if (!pool.length) {
           nextSeed += 3;
           continue;
@@ -572,8 +586,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       state.spin,
       openPositions(state.roster),
       takenIds(state.roster),
+      playerFilterForMode(state.mode),
     );
-  }, [state.roster, state.spin]);
+  }, [state.mode, state.roster, state.spin]);
 
   const franchiseName = state.spin
     ? FRANCHISE_BY_ID[state.spin.franchiseId]?.name ?? state.spin.franchiseId

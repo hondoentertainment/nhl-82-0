@@ -1,5 +1,6 @@
 import { POSITIONS, SEASON_GAMES, type Position } from '../config/constants';
 import type { Player, RosterSlot, SeasonResult } from '../types/game';
+import { lineChemistry } from './chemistry';
 import { gradeForWins, scoreFromWins } from './grades';
 import { buildSeasonTape } from './seasonTape';
 
@@ -129,7 +130,9 @@ export function simulateSeason(
     }));
 
   const filled = ratings.filter((r) => r.player).length;
-  const { strength, mean, min, max, balance } = strengthFromRatings(ratings);
+  const { strength: baseStrength, mean, min, max, balance } = strengthFromRatings(ratings);
+  const chem = lineChemistry(roster);
+  const strength = clamp(baseStrength + chem.bonus, 0, 1);
   const wins = winsFromStrength(strength, filled);
   const losses = SEASON_GAMES - wins;
   const grade = gradeForWins(wins);
@@ -139,7 +142,7 @@ export function simulateSeason(
   const best = sorted[0] ?? null;
   const worst = [...ratings].sort((a, b) => a.rating - b.rating)[0] ?? null;
 
-  const strengths: string[] = [];
+  const strengths: string[] = [...chem.notes];
   const weaknesses: string[] = [];
 
   if (best?.player) {
@@ -182,5 +185,7 @@ export function simulateSeason(
     weakestSlot: worst?.position ?? null,
     toughnessScore: toughness,
     tape: buildSeasonTape(roster, wins),
+    chemistryBonus: chem.bonus,
+    chemistryNotes: chem.notes,
   };
 }

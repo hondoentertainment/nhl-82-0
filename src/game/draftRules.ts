@@ -5,10 +5,12 @@ export function isFairnessMode(mode: GameMode | null): boolean {
   return mode === 'daily' || mode === 'challenge';
 }
 
+/** Ironman opts out of every safety net; seeded modes cannot offer one. */
 export function allowsRedraw(mode: GameMode | null): boolean {
-  return !isFairnessMode(mode);
+  return !isFairnessMode(mode) && mode !== 'ironman';
 }
 
+/** Undo is off in the seeded modes and in Ironman. */
 export function canUndoLastPick(mode: GameMode | null): boolean {
   return (
     mode === 'classic' ||
@@ -16,7 +18,8 @@ export function canUndoLastPick(mode: GameMode | null): boolean {
     mode === 'salary' ||
     mode === 'franchise' ||
     mode === 'tough' ||
-    mode === 'eralock'
+    mode === 'eralock' ||
+    mode === 'fournations'
   );
 }
 

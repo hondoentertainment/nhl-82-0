@@ -131,6 +131,24 @@ export function Home() {
         <button
           type="button"
           className="mode-card"
+          data-testid="mode-ironman"
+          onClick={() => startGame('ironman')}
+        >
+          <h3>Ironman</h3>
+          <p>Classic rules with nothing to fall back on: no skips, no redraws, no undo.</p>
+        </button>
+        <button
+          type="button"
+          className="mode-card"
+          data-testid="mode-fournations"
+          onClick={() => startGame('fournations')}
+        >
+          <h3>Four Nations</h3>
+          <p>Canada, USA, Sweden, Finland only. Build a Face-Off six from those four countries.</p>
+        </button>
+        <button
+          type="button"
+          className="mode-card"
           data-testid="mode-daily"
           onClick={() => startGame('daily')}
           disabled={dailyDone}

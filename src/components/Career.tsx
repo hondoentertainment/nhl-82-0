@@ -19,6 +19,8 @@ const MODE_ORDER: GameMode[] = [
   'franchise',
   'eralock',
   'tough',
+  'ironman',
+  'fournations',
   'daily',
   'challenge',
 ];

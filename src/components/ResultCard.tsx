@@ -134,6 +134,17 @@ export function ResultCard() {
         </div>
       </div>
 
+      {result.chemistryNotes && result.chemistryNotes.length > 0 && (
+        <div className="panel" data-testid="chemistry-notes" style={{ marginTop: '1.5rem' }}>
+          <p className="section-label">Chemistry</p>
+          <ul>
+            {result.chemistryNotes.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {result.tape.length > 0 && (
         <div className="panel" data-testid="season-tape" style={{ marginTop: '1.5rem' }}>
           <p className="section-label">Season tape</p>

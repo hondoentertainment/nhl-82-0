@@ -11,6 +11,8 @@ test.describe('home', () => {
     await expect(page.getByTestId('mode-franchise')).toBeVisible();
     await expect(page.getByTestId('mode-eralock')).toBeVisible();
     await expect(page.getByTestId('mode-tough')).toBeVisible();
+    await expect(page.getByTestId('mode-ironman')).toBeVisible();
+    await expect(page.getByTestId('mode-fournations')).toBeVisible();
     await expect(page.getByTestId('mode-daily')).toBeVisible();
     await expect(page.getByTestId('mode-challenge')).toBeVisible();
     await expect(page.locator('.skip-link')).toHaveAttribute('href', '#main');
