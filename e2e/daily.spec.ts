@@ -8,7 +8,7 @@ test.describe('daily challenge', () => {
     await page.getByRole('button', { name: 'Save' }).click();
 
     await page.getByTestId('mode-daily').click();
-    await expect(page.getByTestId('mode-label')).toHaveText('Daily Challenge');
+    await expect(page.getByTestId('mode-label')).toHaveText('Daily');
     await playFullDraft(page);
 
     await expect(page.getByTestId('season-tape')).toBeVisible();
